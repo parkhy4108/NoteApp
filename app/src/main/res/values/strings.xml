@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Note</string>
+    <string name="MyNote">my notes</string>
+    <string name="DeleteNote">삭제 되었습니다.</string>
+    <string name="UndoDelete">취소</string>
+    <string name="title">제목</string>
+    <string name="content">내용</string>
+    <string name="titleHint">제목을 입력해주시기 바랍니다.</string>
+    <string name="contentHint">내용을 입력해주시기 바랍니다.</string>
+    <string name="color">Color</string>
+</resources>
