@@ -89,10 +89,10 @@ class NoteViewModel @Inject constructor(
                 popUpScreen()
             }
             else {
-                if(title.isBlank()){
+                if(title == ""){
                     SnackBarManager.showMessage(AppText.titleHint)
                 }
-                if(content.isBlank()){
+                if(content == ""){
                     SnackBarManager.showMessage(AppText.contentHint)
                 }
 

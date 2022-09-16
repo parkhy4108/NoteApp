@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dev_musashi.note.ui.theme.*
@@ -39,7 +41,7 @@ fun NoteScreen(
     val focusRequester by remember { mutableStateOf(FocusRequester()) }
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         viewModel.init(id)
     }
 
@@ -71,12 +73,19 @@ fun NoteScreen(
                         modifier = Modifier
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
-                    ){
+                    ) {
                         IconButton(onClick = { viewModel.onBack(popUpScreen) }) {
-                            Icon(painter = painterResource(id = AppImg.ic_back), contentDescription = null)
+                            Icon(
+                                painter = painterResource(id = AppImg.ic_back),
+                                contentDescription = null,
+                                tint = if (state.color == Color(0xFF1B1B1A).toArgb()) Color.White else Color.Black
+                            )
                         }
                         TextButton(onClick = { viewModel.onColorSectionVisible(state.colorSection) }) {
-                            Text(text = stringResource(id = AppText.color), color = Color.Black)
+                            Text(
+                                text = stringResource(id = AppText.color),
+                                color = if (state.color == Color(0xFF1B1B1A).toArgb()) Color.White else Color.Black
+                            )
                         }
                     }
                     AnimatedVisibility(
@@ -106,7 +115,10 @@ fun NoteScreen(
                                             .background(color = color)
                                             .border(
                                                 width = 2.dp,
-                                                color = if (state.color == colorInt) Color.Black else Color.Transparent,
+                                                color =
+                                                if (state.color == colorInt)
+                                                    Color.Black
+                                                else Color.Transparent,
                                                 shape = CircleShape
                                             )
                                             .clickable {
@@ -144,50 +156,67 @@ fun NoteScreen(
                     }
                 }
                 Divider(color = Color.LightGray)
-                Box(
+                TextField(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp)
-                ) {
-                    BasicTextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .onFocusChanged { viewModel.onTitleHintChanged(it) },
-                        value = state.title,
-                        onValueChange = { viewModel.onTitleChanged(it) },
-                        singleLine = true
-                    )
-                    if(state.titleHint)
-                        Text(
-                            text = stringResource(id = AppText.title),
-                            color = Color.LightGray
-                        )
-                }
+                        .padding(12.dp),
+                    focusRequester = focusRequester,
+                    focusChange = { viewModel.onTitleHintChanged(it) },
+                    text = state.title,
+                    onValueChange = { viewModel.onTitleChanged(it) },
+                    color = state.color,
+                    hint = state.titleHint,
+                    hintText = AppText.title
+                )
                 Divider(color = Color.LightGray)
-                Box(
+                TextField(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp)
-                ) {
-                    BasicTextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .onFocusChanged { viewModel.onContentHintChanged(it) },
-                        value = state.content,
-                        onValueChange = { viewModel.onContentChanged(it) }
-                    )
-                    if(state.contentHint)
-                        Text(
-                            text = stringResource(id = AppText.content ),
-                            color = Color.LightGray
-                        )
-                }
-
+                        .padding(12.dp),
+                    focusRequester = focusRequester,
+                    focusChange = { viewModel.onContentHintChanged(it) },
+                    text = state.content,
+                    onValueChange = { viewModel.onContentChanged(it) },
+                    color = state.color,
+                    hint = state.contentHint,
+                    hintText = AppText.content
+                )
             }
         }
 
     }
 
+}
+
+@Composable
+fun TextField(
+    modifier: Modifier,
+    focusRequester: FocusRequester,
+    focusChange: (FocusState) -> Unit,
+    text: String,
+    onValueChange: (String) -> Unit,
+    color: Int,
+    hint: Boolean,
+    hintText: Int
+) {
+    val textColor = if (color == Color(0xFF1B1B1A).toArgb()) Color.White else Color.Gray
+    Box(
+        modifier = modifier
+    ) {
+        BasicTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester)
+                .onFocusChanged { focusChange(it) },
+            value = text,
+            onValueChange = { onValueChange(it) },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(color = textColor)
+        )
+        if (hint)
+            Text(
+                text = stringResource(id = hintText),
+                color = textColor
+            )
+    }
 }

@@ -16,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,7 +36,6 @@ fun MainScreen(
     val state by viewModel.state
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
-
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -58,7 +59,9 @@ fun MainScreen(
             ) {
                 Text(
                     text = stringResource(id = AppText.MyNote),
-                    style = MaterialTheme.typography.h5
+                    style = MaterialTheme.typography.h5,
+                    color = Color.White,
+                    fontStyle = FontStyle.Italic
                 )
             }
             Spacer(modifier = Modifier.height(15.dp))
@@ -105,6 +108,8 @@ fun NoteBox(
     modifier : Modifier,
     onDeleteClick: ()->Unit
 ){
+    val textColor = if (note.color == Color(0xFF1B1B1A).toArgb()) Color.White else Color.Black
+    val iconTint = if (note.color == Color(0xFF1B1B1A).toArgb()) Color.White else Color.Black
     Box(
         modifier = modifier
     ) {
@@ -117,21 +122,27 @@ fun NoteBox(
                 text = note.title,
                 style = MaterialTheme.typography.body1,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = textColor
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = note.content,
                 maxLines = 5,
                 style = MaterialTheme.typography.body1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = textColor
             )
         }
         IconButton(
             onClick = { onDeleteClick() },
             modifier = Modifier.align(Alignment.BottomEnd)
         ) {
-            Icon(painter = painterResource(id = AppImg.ic_delete), contentDescription = null)
+            Icon(
+                painter = painterResource(id = AppImg.ic_delete),
+                contentDescription = "DeleteIcon",
+                tint = iconTint
+            )
         }
     }
 }

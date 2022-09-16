@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.dev_musashi.note.presentation.add.NoteScreen
 import com.dev_musashi.note.presentation.main.MainScreen
+import com.dev_musashi.note.presentation.splash.SplashScreen
 import com.dev_musashi.note.ui.theme.NoteTheme
 
 @Composable
@@ -37,7 +38,7 @@ fun NoteApp() {
             ) { innerPadding ->
                 NavHost(
                     navController = appState.navController,
-                    startDestination = Screen.Main.route,
+                    startDestination = Screen.Splash.route,
                     modifier = Modifier.padding(innerPadding)
                 ) {
                     graph(appState)
@@ -48,6 +49,9 @@ fun NoteApp() {
 }
 
 fun NavGraphBuilder.graph(appState: AppState) {
+    composable(route = Screen.Splash.route) {
+        SplashScreen(openAndPopUp = { route, popUp -> appState.navigateAndPopUp(route,popUp)})
+    }
     composable(route = Screen.Main.route) {
         MainScreen(
             openScreen = { route -> appState.navigate(route) }
