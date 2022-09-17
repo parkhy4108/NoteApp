@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,11 +19,13 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.dev_musashi.note.ui.theme.*
@@ -166,7 +170,8 @@ fun NoteScreen(
                     onValueChange = { viewModel.onTitleChanged(it) },
                     color = state.color,
                     hint = state.titleHint,
-                    hintText = AppText.title
+                    hintText = AppText.title,
+                    singleLine = true
                 )
                 Divider(color = Color.LightGray)
                 TextField(
@@ -179,7 +184,8 @@ fun NoteScreen(
                     onValueChange = { viewModel.onContentChanged(it) },
                     color = state.color,
                     hint = state.contentHint,
-                    hintText = AppText.content
+                    hintText = AppText.content,
+                    singleLine = false
                 )
             }
         }
@@ -197,7 +203,8 @@ fun TextField(
     onValueChange: (String) -> Unit,
     color: Int,
     hint: Boolean,
-    hintText: Int
+    hintText: Int,
+    singleLine: Boolean
 ) {
     val textColor = if (color == Color(0xFF1B1B1A).toArgb()) Color.White else Color.Gray
     Box(
@@ -210,8 +217,9 @@ fun TextField(
                 .onFocusChanged { focusChange(it) },
             value = text,
             onValueChange = { onValueChange(it) },
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(color = textColor)
+            singleLine = singleLine,
+            textStyle = LocalTextStyle.current.copy(color = textColor),
+            cursorBrush = SolidColor(textColor)
         )
         if (hint)
             Text(
