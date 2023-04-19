@@ -14,7 +14,7 @@ class RepositoryImpl @Inject constructor(
         return dao.getNotes()
     }
 
-    override suspend fun getNote(id: Int): Note? {
+    override suspend fun getNote(id: Int): Note {
         return dao.getNote(id)
     }
 

@@ -11,6 +11,7 @@ import com.dev_musashi.note.domain.usecase.GetNotes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -33,15 +34,15 @@ class MainViewModel @Inject constructor(
         getAllNotes()
     }
 
-    private fun getAllNotes() {
-        getNotesJob?.cancel()
-        getNotesJob = getNotes()
-            .onEach {
-                val list = it.sortedByDescending { note-> note.timestamp }
-                state.value = state.value.copy(notes = list)
-            }
-            .launchIn(viewModelScope)
+    fun getAllNotes() {
+        getNotesFlow().launchIn(viewModelScope)
     }
+
+    fun getNotesFlow() : Flow<List<Note>> = getNotes()
+        .onEach {
+            val list = it.sortedByDescending { note-> note.timestamp }
+            state.value = state.value.copy(notes = list)
+        }
 
     fun addButtonClick(openScreen: (String) -> Unit) {
         openScreen(Screen.Note.route)
@@ -67,5 +68,7 @@ class MainViewModel @Inject constructor(
             recentlyDeletedNote = null
         }
     }
+
+
 
 }

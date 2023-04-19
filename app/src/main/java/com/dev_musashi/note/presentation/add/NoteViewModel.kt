@@ -23,29 +23,33 @@ class NoteViewModel @Inject constructor(
     var state = mutableStateOf(NoteState())
         private set
 
-    private var noteId: Int? = null
+    var noteId: Int? = null
     private val title get() = state.value.title
     private val content get() = state.value.content
     private val color get() = state.value.color
 
-    fun init(id: Int){
-        if(id != -1){
+    fun init(id: Int) {
+        if(id != -1) {
             noteId = id
-            viewModelScope.launch(Dispatchers.IO) {
-                val note = getNote(id)
-                if(note != null) {
-                    state.value = state.value.copy(
-                        title = note.title,
-                        content = note.content,
-                        color = note.color,
-                        titleHint = false,
-                        contentHint = false
-                    )
-                }
-            }
+            loadNote(id)
         }
+    }
 
+    fun loadNote(id: Int) {
+        viewModelScope.launch {
+            val note = getNote(id)
+            onNoteChanged(note.title, note.content, note.color)
+        }
+    }
 
+    fun onNoteChanged(title: String, content: String, color: Int) {
+        state.value = state.value.copy(
+            title = title,
+            content = content,
+            color = color,
+            titleHint = false,
+            contentHint = false
+        )
     }
 
     fun onTitleChanged(newTitle: String) {
@@ -68,37 +72,32 @@ class NoteViewModel @Inject constructor(
         state.value = state.value.copy(color = newColor)
     }
 
-    fun onColorSectionVisible(colorSection: Boolean){
+    fun onColorSectionVisible(colorSection: Boolean) {
         state.value = state.value.copy(colorSection = !colorSection)
     }
 
-    fun onSaveClick(
-        popUpScreen: ()->Unit
-    ){
-        viewModelScope.launch {
-            if(title.isNotBlank() && content.isNotBlank()) {
-                addNote(
-                    note = Note(
-                        id = noteId,
-                        title = title,
-                        content = content,
-                        color = color,
-                        timestamp = System.currentTimeMillis()
-                    )
-                )
-                popUpScreen()
-            }
-            else {
-                if(title == ""){
-                    SnackBarManager.showMessage(AppText.titleHint)
-                }
-                if(content == ""){
-                    SnackBarManager.showMessage(AppText.contentHint)
-                }
-
-            }
+    fun onSaveClick(popUpScreen: () -> Unit) {
+        if (title.isNotBlank() && content.isNotBlank()) {
+            addNote()
+            popUpScreen()
+        } else {
+            if (title.isBlank()) SnackBarManager.showMessage(AppText.titleHint)
+            if (content.isBlank()) SnackBarManager.showMessage(AppText.contentHint)
         }
+    }
 
+    fun addNote() {
+        viewModelScope.launch {
+            addNote(
+                note = Note(
+                    id = noteId,
+                    title = title,
+                    content = content,
+                    color = color,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+        }
     }
 
     fun onBack(popUpScreen: () -> Unit) {
