@@ -1,3 +1,21 @@
+package com.dev_young.note
+
+import com.dev_young.note.domain.model.Note
+import com.dev_young.note.domain.usecase.AddNote
+import com.dev_young.note.domain.usecase.GetNote
+import com.dev_young.note.presentation.note.NoteViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
 class NoteViewModelTest {
