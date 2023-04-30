@@ -1,13 +1,14 @@
-package com.dev_musashi.note.presentation.main
+package com.dev_young.note.presentation.notesList
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dev_musashi.note.Screen
-import com.dev_musashi.note.domain.model.Note
-import com.dev_musashi.note.domain.usecase.AddNote
-import com.dev_musashi.note.domain.usecase.DeleteNote
-import com.dev_musashi.note.domain.usecase.GetNotes
+import com.dev_young.note.Screen
+import com.dev_young.note.domain.model.Note
+import com.dev_young.note.domain.usecase.AddNote
+import com.dev_young.note.domain.usecase.DeleteNote
+import com.dev_young.note.domain.usecase.GetNotes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,22 +28,20 @@ class MainViewModel @Inject constructor(
     var state = mutableStateOf(MainState())
         private set
 
-    private var recentlyDeletedNote: Note? = null
-    private var getNotesJob: Job? = null
+    var recentlyDeletedNote: Note? = null
 
-    init {
-        getAllNotes()
-    }
+//    init {
+//        getAllNotes()
+//    }
 
     fun getAllNotes() {
         getNotesFlow().launchIn(viewModelScope)
     }
 
-    fun getNotesFlow() : Flow<List<Note>> = getNotes()
-        .onEach {
-            val list = it.sortedByDescending { note-> note.timestamp }
-            state.value = state.value.copy(notes = list)
-        }
+    private fun getNotesFlow(): Flow<List<Note>> = getNotes().onEach {
+        val list = it.sortedByDescending { note -> note.timestamp }
+        state.value = state.value.copy(notes = list)
+    }
 
     fun addButtonClick(openScreen: (String) -> Unit) {
         openScreen(Screen.Note.route)
@@ -55,13 +54,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun noteClick(
-        id: Int,
-        openScreen: (String) -> Unit
-    ){
-        openScreen(Screen.Note.passId(id))
-    }
-
     fun undoClick() {
         viewModelScope.launch(Dispatchers.IO) {
             addNote(recentlyDeletedNote!!)
@@ -69,6 +61,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
-
-
+    fun noteClick(
+        id: Int,
+        openScreen: (String) -> Unit
+    ) {
+        openScreen(Screen.Note.passId(id))
+    }
 }
