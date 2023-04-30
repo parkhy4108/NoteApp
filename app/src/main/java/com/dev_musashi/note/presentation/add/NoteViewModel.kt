@@ -1,16 +1,15 @@
-package com.dev_musashi.note.presentation.add
+package com.dev_young.note.presentation.note
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dev_musashi.note.domain.model.Note
-import com.dev_musashi.note.domain.usecase.AddNote
-import com.dev_musashi.note.domain.usecase.GetNote
-import com.dev_musashi.note.util.SnackBarManager
-import com.dev_musashi.note.R.string as AppText
+import com.dev_young.note.domain.model.Note
+import com.dev_young.note.domain.usecase.AddNote
+import com.dev_young.note.domain.usecase.GetNote
+import com.dev_young.note.util.SnackBarManager
+import com.dev_young.note.R.string as AppText
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,6 +23,8 @@ class NoteViewModel @Inject constructor(
         private set
 
     var noteId: Int? = null
+    var currentTime : Long? = null
+
     private val title get() = state.value.title
     private val content get() = state.value.content
     private val color get() = state.value.color
@@ -35,7 +36,7 @@ class NoteViewModel @Inject constructor(
         }
     }
 
-    fun loadNote(id: Int) {
+    private fun loadNote(id: Int) {
         viewModelScope.launch {
             val note = getNote(id)
             onNoteChanged(note.title, note.content, note.color)
@@ -56,8 +57,12 @@ class NoteViewModel @Inject constructor(
         state.value = state.value.copy(title = newTitle)
     }
 
-    fun onTitleHintChanged(titleFocus: FocusState) {
+    /*fun onTitleHintChanged(titleFocus: FocusState) {
         state.value = state.value.copy(titleHint = !titleFocus.isFocused && title.isBlank())
+    }*/
+
+    fun onTitleHintChanged(titleFocus: Boolean, title: Boolean) {
+        state.value = state.value.copy(titleHint = titleFocus && title)
     }
 
     fun onContentHintChanged(contentFocus: FocusState) {
@@ -78,7 +83,7 @@ class NoteViewModel @Inject constructor(
 
     fun onSaveClick(popUpScreen: () -> Unit) {
         if (title.isNotBlank() && content.isNotBlank()) {
-            addNote()
+            addNoteClicked()
             popUpScreen()
         } else {
             if (title.isBlank()) SnackBarManager.showMessage(AppText.titleHint)
@@ -86,7 +91,8 @@ class NoteViewModel @Inject constructor(
         }
     }
 
-    fun addNote() {
+    fun addNoteClicked() {
+        currentTime = System.currentTimeMillis()
         viewModelScope.launch {
             addNote(
                 note = Note(
@@ -94,7 +100,7 @@ class NoteViewModel @Inject constructor(
                     title = title,
                     content = content,
                     color = color,
-                    timestamp = System.currentTimeMillis()
+                    timestamp = currentTime!!
                 )
             )
         }
