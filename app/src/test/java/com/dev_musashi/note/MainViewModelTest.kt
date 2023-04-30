@@ -1,15 +1,18 @@
-package com.dev_musashi.note
+package com.dev_young.note
 
-import com.dev_musashi.note.domain.model.Note
-import com.dev_musashi.note.domain.usecase.AddNote
-import com.dev_musashi.note.domain.usecase.DeleteNote
-import com.dev_musashi.note.domain.usecase.GetNotes
-import com.dev_musashi.note.presentation.main.MainViewModel
+import com.dev_young.note.domain.model.Note
+import com.dev_young.note.domain.usecase.AddNote
+import com.dev_young.note.domain.usecase.DeleteNote
+import com.dev_young.note.domain.usecase.GetNotes
+import com.dev_young.note.presentation.notesList.MainViewModel
 import io.mockk.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -20,54 +23,124 @@ import org.junit.runners.JUnit4
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
 class MainViewModelTest {
+
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    // 테스트 대상 클래스
-    private lateinit var viewModel: MainViewModel
-    private lateinit var fakeRepository: FakeRepository
 
+    private val notesTest = mutableListOf<Note>()
+    private lateinit var viewModel: MainViewModel
+    private lateinit var repository: FakeRepository
     private lateinit var getNotes: GetNotes
     private lateinit var addNote: AddNote
     private lateinit var deleteNote: DeleteNote
 
-    private val notesTest = mutableListOf<Note>()
-
     @Before
     fun setUp() {
-        fakeRepository = FakeRepository()
-        getNotes = GetNotes(repository = fakeRepository)
-        deleteNote = DeleteNote(repository = fakeRepository)
-        addNote = AddNote(repository = fakeRepository)
+
+        (0..10).forEach { i ->
+            notesTest.add(Note(i, "$i", "$i", i.toLong(), i))
+        }
+
+        repository = FakeRepository()
+
+        getNotes = GetNotes(repository)
+        addNote = AddNote(repository)
+        deleteNote = DeleteNote(repository)
 
         viewModel = MainViewModel(getNotes, addNote, deleteNote)
 
-
         runBlocking {
-            notesTest.forEach { fakeRepository.insertNote(it) }
+            notesTest.forEach {
+                repository.insertNote(it)
+            }
         }
+
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
-    fun `viewModel이 시작되면, 모든 노트들을 불러옴`() = runTest {
-        viewModel.getAllNotes()
-        assertEquals(notesTest, viewModel.state.value.notes.sortedBy { it.id })
+    fun `when getAllNotes() is called, then the notes are sorted and updated in the state`() =
+        runTest {
+            //when
+            val state = viewModel.state.value
+            viewModel.getAllNotes()
+            delay(2000)
+
+            //then
+            assertEquals(notesTest, viewModel.state.value.notes.sortedBy { it.id })
+        }
+
+    @Test
+    fun `when deleteButtonClick() is called, then the note is deleted and recently note is updated`() =
+        runTest {
+            //given
+            val note = Note(0, "0", "0", 0L, 0)
+            notesTest.remove(note)
+
+            //when
+            viewModel.deleteButtonClick(note)
+
+            //then
+            viewModel.getAllNotes()
+            delay(1000)
+            val result = viewModel.state.value.notes.sortedBy { it.id }
+            assertEquals(note, viewModel.recentlyDeletedNote)
+            assertEquals(notesTest, result)
+
+        }
+
+    @Test
+    fun `when undoClick is called and recently DeleteNote is not Null, then the note is added back`() =
+        runTest {
+
+            //given
+            notesTest.add(Note(0, "0", "0", 0L, 0))
+            viewModel.recentlyDeletedNote = Note(0, "0", "0", 0L, 0)
+
+            //when
+            viewModel.undoClick()
+
+            //then
+            viewModel.getAllNotes()
+            delay(1000)
+            val result = viewModel.state.value.notes.sortedBy { it.id }
+            assertEquals(notesTest.sortedBy { it.id }, result)
+
+        }
+
+    @Test
+    fun `when addButtonClick() is called, then the new note screen is opened with id`() {
+        //given
+        var calledRoute: String? = null
+        val openScreen : (String) -> Unit = { route -> calledRoute = route}
+
+        //when
+        viewModel.addButtonClick(openScreen)
+
+        //then
+        assertEquals(Screen.Note.route, calledRoute)
     }
 
     @Test
-    fun `삭제버튼을 누르면 노트가 삭제됨`() = runTest {
-        notesTest.remove(Note(0,"a","a",0L,0))
-        viewModel.deleteButtonClick(Note(0,"a","a",0L,0))
-        viewModel.getAllNotes()
-        assertEquals(notesTest,viewModel.state.value.notes.sortedBy { it.id })
-    }
+    fun `when noteClick is called, then the note screen is opened with Note id`(){
+        //given
+        val id = 123
+        var calledRoute: String? = null
+        val openScreen: (String) -> Unit = { route -> calledRoute = route}
 
-    @Test
-    fun `undo버튼을 누르면 삭제한 노트가 다시 복구됨`() = runTest {
-        viewModel.undoClick()
-        viewModel.getAllNotes()
-        assertEquals(notesTest, viewModel.state.value.notes.sortedBy { it.id })
+        //when
+        viewModel.noteClick(id, openScreen)
+
+        //then
+        assertEquals(Screen.Note.passId(id), calledRoute)
+        println(calledRoute)
     }
 
 
 }
+
